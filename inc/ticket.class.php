@@ -68,6 +68,27 @@ class PluginPdfTicket extends PluginPdfCommon
       return $result;
    }
 
+   static function getAdditionalFieldsDropdownValue($id, $val, $fieldName, $field)
+   {
+      global $DB;
+
+      if ($val) {
+         $dropdownId = $val["plugin_fields_" . $fieldName . "dropdowns_id"];
+
+
+         $query = "SELECT * FROM glpi_plugin_fields_${fieldName}dropdowns WHERE id = $dropdownId limit 1";
+
+         $res = $DB->query($query);
+
+         $result = $DB->fetchAssoc($res);
+
+         // die(json_encode(["plugin_fields_" . $fieldName . "dropdowns_id", $val, $dropdownId, $query, $result]));
+
+         return [$fieldName => $result['completename']];
+      }
+
+   }
+
    static function getAdditionalFieldsForTicket(Ticket $ticket, array &$fieldValues = [], array &$fieldsInfo = []): void
    {
       $plugin = new Plugin();
@@ -99,8 +120,7 @@ class PluginPdfTicket extends PluginPdfCommon
             foreach ($fieldsCFields as $field) {
                $fieldName = $field['name'];
                $fieldsInfo[$fieldName] = $field;
-               $fieldType = $fieldsInfo[$fieldName]['type'];
-
+               $fieldType = $field['type'];
 
                try {
                   $query = "SELECT * FROM glpi_plugin_fields_ticket$containerName WHERE items_id = $ID limit 1";
@@ -109,7 +129,7 @@ class PluginPdfTicket extends PluginPdfCommon
 
                   $result = $DB->fetchAssoc($res);
 
-                  if(!array_key_exists($fieldName, $result)) return;
+                  // if(!array_key_exists($fieldName, $result)) return;
 
                   switch ($fieldType) {
                      case 'datetime':
@@ -117,9 +137,15 @@ class PluginPdfTicket extends PluginPdfCommon
                      case 'time':
                         $result = self::formatDate($result[$fieldName], $fieldType);
                         break;
+                     case 'dropdown':
+                        $result = self::getAdditionalFieldsDropdownValue($ID, $result, $fieldName, $field);
+                        // die(json_encode([$result,$fieldName]));
+                        break;
+
                   }
 
-                  $fieldValues[$fieldName] = $result;
+                  $fieldValues[$fieldName] = $result[$fieldName];
+
                } catch (\Throwable $th) {
                }
             }
@@ -181,6 +207,7 @@ class PluginPdfTicket extends PluginPdfCommon
       $additionalFieldsValues = [];
 
       self::getAdditionalFieldsForTicket($ticket, $additionalFieldsValues, $additionalFieldsInfo);
+      // die(json_encode([$additionalFieldsValues]));
 
       if (sizeof($additionalFieldsInfo)) {
          $pdf->setColumnsSize(100);
@@ -213,17 +240,22 @@ class PluginPdfTicket extends PluginPdfCommon
 
          $pdf->displaySpace();
          $pdf->setColumnsSize(100);
-         if(array_key_exists('averafield', $additionalFieldsValues)) $pdf->displayText("<strong><i>Avería</i></strong>", "<br>" . $additionalFieldsValues['averafield'], 5);
+         $pdf->displayText("<strong><i>Avería</i></strong>", "<br>" . $additionalFieldsValues['averafield'], 5);
 
          $pdf->displaySpace();
 
-         if(array_key_exists('descripcindelaintervencinfield', $additionalFieldsValues))  $pdf->displayText("<strong><i>Descripción de la intervención</i></strong>", "<br>" . $additionalFieldsValues['descripcindelaintervencinfield'], 6);
+         if ($additionalFieldsValues['descripcindelaintervencinfield'] != null && $additionalFieldsValues['descripcindelaintervencinfield'] != '') {
+            $pdf->displayText("<strong><i>Descripción de la intervención</i></strong>", "<br>" . $additionalFieldsValues['descripcindelaintervencinfield'], 6);
+         } else {
+            $pdf->displayText("<strong><i>Descripción de la intervención</i></strong>", "<br>" . trim($additionalFieldsValues['solutions'][0]['content']), 6);
+         }
+
 
          $pdf->displaySpace();
-         if(array_key_exists('materialempleadofield', $additionalFieldsValues))  $pdf->displayText("<strong><i>Material empleado</i></strong>", "<br>" . $additionalFieldsValues['materialempleadofield'], 5);
+         $pdf->displayText("<strong><i>Material empleado</i></strong>", "<br>" . $additionalFieldsValues['materialempleadofield'], 5);
 
          $pdf->displaySpace();
-         if(array_key_exists('observacionefieldtwo', $additionalFieldsValues))  $pdf->displayText("<strong><i>Observaciones</i></strong>", "<br>" . $additionalFieldsValues['observacionefieldtwo'], 4);
+         $pdf->displayText("<strong><i>Observaciones</i></strong>", "<br>" . $additionalFieldsValues['observacionefieldtwo'], 4);
       }
 
       // Assign to
