@@ -29,17 +29,20 @@
  --------------------------------------------------------------------------
 */
 
-abstract class PluginPdfCommon extends CommonGLPI {
+abstract class PluginPdfCommon extends CommonGLPI
+{
 
-   protected $obj= NULL;
+   protected $obj = NULL;
 
    static $rightname = "plugin_pdf";
 
+   protected $pdf;
 
    /**
     * Constructor, should intialize $this->obj property
-   **/
-   function __construct(CommonGLPI $obj=NULL) {
+    **/
+   function __construct(CommonGLPI $obj = NULL)
+   {
    }
 
 
@@ -51,8 +54,9 @@ abstract class PluginPdfCommon extends CommonGLPI {
     * @param $options   array of options (for withtemplate)
     *
     * @return nothing (set the tab array)
-   **/
-   final function addStandardTab($itemtype, &$ong, $options) {
+    **/
+   final function addStandardTab($itemtype, &$ong, $options)
+   {
 
       $dbu = new DbUtils();
 
@@ -61,11 +65,15 @@ abstract class PluginPdfCommon extends CommonGLPI {
          $withtemplate = $options['withtemplate'];
       }
 
-      if (!is_integer($itemtype)
-          && ($obj = $dbu->getItemForItemtype($itemtype))) {
+      if (
+         !is_integer($itemtype)
+         && ($obj = $dbu->getItemForItemtype($itemtype))
+      ) {
 
-         if (method_exists($itemtype, "displayTabContentForPDF")
-             && !($obj instanceof PluginPdfCommon)) {
+         if (
+            method_exists($itemtype, "displayTabContentForPDF")
+            && !($obj instanceof PluginPdfCommon)
+         ) {
 
             $titles = $obj->getTabNameForItem($this->obj, $withtemplate);
             if (!is_array($titles)) {
@@ -74,7 +82,7 @@ abstract class PluginPdfCommon extends CommonGLPI {
 
             foreach ($titles as $key => $val) {
                if (!empty($val)) {
-                  $ong[$itemtype.'$'.$key] = $val;
+                  $ong[$itemtype . '$' . $key] = $val;
                }
             }
          }
@@ -87,17 +95,18 @@ abstract class PluginPdfCommon extends CommonGLPI {
     * Can be overriden to remove some unwanted tab
     *
     * @param $options Array of options
-   **/
-   function defineAllTabsPDF($options=[]) {
+    **/
+   function defineAllTabsPDF($options = [])
+   {
 
-      $onglets  = $this->obj->defineTabs();
+      $onglets = $this->obj->defineTabs();
 
       $othertabs = CommonGLPI::getOtherTabs($this->obj->getType());
 
       unset($onglets['empty']);
 
       // Add plugins TAB
-      foreach($othertabs as $typetab) {
+      foreach ($othertabs as $typetab) {
          $this->addStandardTab($typetab, $onglets, $options);
       }
 
@@ -117,8 +126,9 @@ abstract class PluginPdfCommon extends CommonGLPI {
     * @param $withtemplate boolean is a template object ?
     *
     *  @return string tab name
-   **/
-   function getTabNameForItem(CommonGLPI $item, $withtemplate=0) {
+    **/
+   function getTabNameForItem(CommonGLPI $item, $withtemplate = 0)
+   {
 
       if (Session::haveRight('plugin_pdf', READ)) {
          if (!isset($withtemplate) || empty($withtemplate)) {
@@ -139,8 +149,9 @@ abstract class PluginPdfCommon extends CommonGLPI {
     * @param $tab   string tab number
     *
     * @return true if display done (else will search for another handler)
-   **/
-   static function displayTabContentForPDF(PluginPdfSimplePDF $pdf, CommonGLPI $item, $tab) {
+    **/
+   static function displayTabContentForPDF(PluginPdfSimplePDF $pdf, CommonGLPI $item, $tab)
+   {
       return false;
    }
 
@@ -155,111 +166,114 @@ abstract class PluginPdfCommon extends CommonGLPI {
     * @param $tab   string tab number
     *
     * @return true if display done (else will search for another handler)
-   **/
-   static final function displayCommonTabForPDF(PluginPdfSimplePDF $pdf, CommonGLPI $item, $tab) {
+    **/
+   static final function displayCommonTabForPDF(PluginPdfSimplePDF $pdf, CommonGLPI $item, $tab)
+   {
 
       switch ($tab) {
-         case $item->getType().'$main' :
+         case $item->getType() . '$main':
             static::pdfMain($pdf, $item);
             break;
 
-         case 'Notepad$1' :
+         case 'Notepad$1':
             if (Session::haveRight($item::$rightname, READNOTE)) {
                self::pdfNote($pdf, $item);
             }
             break;
 
-         case 'Document_Item$1' :
+         case 'Document_Item$1':
             if (Session::haveRight('document', READ)) {
                PluginPdfDocument::pdfForItem($pdf, $item);
             }
             break;
 
-         case 'NetworkPort$1' :
+         case 'NetworkPort$1':
             PluginPdfNetworkPort::pdfForItem($pdf, $item);
             break;
 
-         case 'Infocom$1' :
+         case 'Infocom$1':
             if (Session::haveRight('infocom', READ)) {
                PluginPdfInfocom::pdfForItem($pdf, $item);
             }
             break;
 
-         case 'Contract_Item$1' :
+         case 'Contract_Item$1':
             if (Session::haveRight("contract", READ)) {
                PluginPdfContract_Item::pdfForItem($pdf, $item);
             }
             break;
 
-         case 'Ticket$1' :
+         case 'Ticket$1':
             if (Ticket::canView()) {
                PluginPdfItem_Ticket::pdfForItem($pdf, $item);
             }
             break;
 
-         case 'Item_Problem$1' :
+         case 'Item_Problem$1':
             if (Problem::canView()) {
                PluginPdfItem_Problem::pdfForItem($pdf, $item);
             }
             break;
 
-         case 'Change_Item$1' :
+         case 'Change_Item$1':
             if (Change::canView()) {
                PluginPdfChange_Item::pdfForItem($pdf, $item);
             }
             break;
 
-         case 'ManualLink$1' :
+         case 'ManualLink$1':
             if (Session::haveRight('link', READ)) {
                PluginPdfLink::pdfForItem($pdf, $item);
             }
             break;
 
-         case 'Reservation$1' :
+         case 'Reservation$1':
             if (Session::haveRight('reservation', READ)) {
                PluginPdfReservation::pdfForItem($pdf, $item);
             }
             break;
 
-         case 'Log$1' :
+         case 'Log$1':
             PluginPdfLog::pdfForItem($pdf, $item);
             break;
 
-         case 'KnowbaseItem_Item$1' :
+         case 'KnowbaseItem_Item$1':
             if (KnowbaseItem::canView()) {
                PluginPdfItem_Knowbaseitem::pdfForItem($pdf, $item);
             }
             break;
 
-         case 'Item_Devices$1' :
+         case 'Item_Devices$1':
             if (Session::haveRight('device', READ)) {
                PluginPdfItem_Device::pdfForItem($pdf, $item);
             }
             break;
 
-         case 'Item_Disk$1' :
+         case 'Item_Disk$1':
             PluginPdfItem_Disk::pdfForItem($pdf, $item);
             break;
 
-         case 'Computer_Item$1' :
+         case 'Computer_Item$1':
             PluginPdfComputer_Item::pdfForItem($pdf, $item);
             break;
 
-         case 'Item_SoftwareVersion$1' :
+         case 'Item_SoftwareVersion$1':
             PluginPdfItem_SoftwareVersion::pdfForItem($pdf, $item);
             break;
 
-         Case 'Domain_Item$1' :
+         case 'Domain_Item$1':
             PluginPdfDomain_Item::pdfForItem($pdf, $item);
             break;
 
-         case 'Item_OperatingSystem$1' :
+         case 'Item_OperatingSystem$1':
             PluginPdfItem_OperatingSystem::pdfForItem($pdf, $item);
             break;
 
-         default :
+         default:
             return false;
       }
+
+
       return true;
    }
 
@@ -274,11 +288,12 @@ abstract class PluginPdfCommon extends CommonGLPI {
     * @param $withtemplate boolean is a template object ?
     *
     * @return true
-   **/
-   static function displayTabContentForItem(CommonGLPI $item, $tabnum=1, $withtemplate=0) {
+    **/
+   static function displayTabContentForItem(CommonGLPI $item, $tabnum = 1, $withtemplate = 0)
+   {
 
       $pref = new PluginPdfPreference;
-      $pref->menu($item, Plugin::getWebDir('pdf')."/front/export.php");
+      $pref->menu($item, Plugin::getWebDir('pdf') . "/front/export.php");
 
       return true;
    }
@@ -290,26 +305,46 @@ abstract class PluginPdfCommon extends CommonGLPI {
     * No HTML supported in this function
     *
     * @param $ID integer, ID of the object to print
-   **/
-   private function addHeader($ID) {
+    **/
+   private function addHeader($ID)
+   {
 
       $entity = '';
+      $header = '';
       if ($this->obj->getFromDB($ID) && $this->obj->can($ID, READ)) {
-         if ($this->obj->getType() != 'Ticket'
-             && $this->obj->getType() != 'KnowbaseItem'
-             && $this->obj->getField('name')) {
+         if (
+            $this->obj->getType() != 'Ticket'
+            && $this->obj->getType() != 'KnowbaseItem'
+            && $this->obj->getField('name')
+         ) {
             $name = $this->obj->getField('name');
          } else {
             $name = sprintf(__('%1$s %2$s'), __('ID'), $ID);
          }
 
          if (Session::isMultiEntitiesMode() && $this->obj->isEntityAssign()) {
-            $entity = ' ('.Dropdown::getDropdownName('glpi_entities', $this->obj->getEntityID()).')';
+            $separator = Glpi\Toolbox\Sanitizer::sanitize(' > ');
+            $entityNames = explode($separator, Dropdown::getDropdownName('glpi_entities', $this->obj->getEntityID()));
+            $entity = ' (' . $entityNames[count($entityNames) - 1] . ')';
          }
-         $header = Glpi\Toolbox\Sanitizer::unsanitize(sprintf(__('%1$s - %2$s'),
-                                                                      $this->obj->getTypeName(),
-                                                                      sprintf(__('%1$s %2$s'),
-                                                                              $name, $entity)));
+
+         if ($this->obj->getType() == 'Ticket') {
+            $header = Glpi\Toolbox\Sanitizer::unsanitize("Parte de asistencia técnica");
+         } else {
+            $header = Glpi\Toolbox\Sanitizer::unsanitize(
+               sprintf(
+                  __('%1$s - %2$s'),
+                  $this->obj->getTypeName(),
+                  sprintf(
+                     __('%1$s %2$s'),
+                     $name,
+                     $entity
+                  )
+               )
+            );
+            # code...
+         }
+
          $this->pdf->setHeader($header);
 
          return true;
@@ -318,22 +353,23 @@ abstract class PluginPdfCommon extends CommonGLPI {
    }
 
 
-   static function pdfNote(PluginPdfSimplePDF $pdf, CommonDBTM $item) {
+   static function pdfNote(PluginPdfSimplePDF $pdf, CommonDBTM $item)
+   {
 
-      $ID    = $item->getField('id');
+      $ID = $item->getField('id');
       $notes = Notepad::getAllForItem($item);
-      $rand  = mt_rand();
+      $rand = mt_rand();
 
       $number = count($notes);
 
       $pdf->setColumnsSize(100);
-      $title = '<b>'._n('Note', 'Notes', $number).'</b>';
+      $title = '<b>' . _n('Note', 'Notes', $number) . '</b>';
 
       if (!$number) {
          $pdf->displayTitle(sprintf(__('%1$s: %2$s'), $title, __('No item to display')));
       } else {
          if ($number > $_SESSION['glpilist_limit']) {
-            $title = sprintf(__('%1$s: %2$s'), $title, $_SESSION['glpilist_limit'].' / '.$number);
+            $title = sprintf(__('%1$s: %2$s'), $title, $_SESSION['glpilist_limit'] . ' / ' . $number);
          } else {
             $title = sprintf(__('%1$s: %2$s'), $title, $number);
          }
@@ -342,7 +378,7 @@ abstract class PluginPdfCommon extends CommonGLPI {
          $tot = 0;
          foreach ($notes as $note) {
             if (!empty($note['content']) && ($tot < $_SESSION['glpilist_limit'])) {
-               $id      = 'note'.$note['id'].$rand;
+               $id = 'note' . $note['id'] . $rand;
                $content = $note['content'];
                if (empty($content)) {
                   $content = NOT_AVAILABLE;
@@ -366,9 +402,9 @@ abstract class PluginPdfCommon extends CommonGLPI {
     * @param $render  Boolean send result if true,  return result if false
     *
     * @return pdf output if $render is false
-   **/
-   final function generatePDF($tab_id, $tabs, $page=0, $render=true) {
-
+    **/
+   final function generatePDF($tab_id, $tabs, $page = 0, $render = true)
+   {
       $dbu = new DbUtils();
 
       $this->pdf = new PluginPdfSimplePDF('a4', ($page ? 'landscape' : 'portrait'));
@@ -382,140 +418,226 @@ abstract class PluginPdfCommon extends CommonGLPI {
          }
 
          foreach ($tabs as $tab) {
-            if (!$this->displayTabContentForPDF($this->pdf, $this->obj, $tab)
-                && !$this->displayCommonTabForPDF($this->pdf, $this->obj, $tab)) {
+            if (
+               !$this->displayTabContentForPDF($this->pdf, $this->obj, $tab)
+               && !$this->displayCommonTabForPDF($this->pdf, $this->obj, $tab)
+            ) {
 
-               $data     = explode('$',$tab);
+               $data = explode('$', $tab);
                $itemtype = $data[0];
                // Default set
-               $tabnum   = (isset($data[1]) ? $data[1] : 1);
+               $tabnum = (isset($data[1]) ? $data[1] : 1);
 
-               if (!is_integer($itemtype)
-                   && ($itemtype != 'empty')) {
+               if (
+                  !is_integer($itemtype)
+                  && ($itemtype != 'empty')
+               ) {
                   if ($itemtype == "Item_Devices") {
                      $PluginPdfComputer = new PluginPdfComputer();
-                     if ($PluginPdfComputer->displayTabContentForPdf($this->pdf, $this->obj,
-                                                                     $tabnum)) {
+                     if (
+                        $PluginPdfComputer->displayTabContentForPdf(
+                           $this->pdf, $this->obj,
+                           $tabnum
+                        )
+                     ) {
                         continue;
                      }
-                  } else if (method_exists($itemtype, "displayTabContentForPdf")
-                             && ($obj = $dbu->getItemForItemtype($itemtype))) {
+                  } else if (
+                     method_exists($itemtype, "displayTabContentForPdf")
+                     && ($obj = $dbu->getItemForItemtype($itemtype))
+                  ) {
                      if ($obj->displayTabContentForPdf($this->pdf, $this->obj, $tabnum)) {
                         continue;
                      }
                   }
                }
-               Toolbox::logInFile('php-errors',
-                                  sprintf(__("PDF: don't know how to display %s tab").'\n', $tab));
+               Toolbox::logInFile(
+                  'php-errors',
+                  sprintf(__("PDF: don't know how to display %s tab") . '\n', $tab)
+               );
             }
          }
       }
+
       $config = PluginPdfConfig::getInstance();
       if (!empty($config->getField('add_text'))) {
-         $this->pdf->displayText('<b><i>'.$config->getField('add_text').'</i></b>', '', 5);
+         $this->pdf->displaySpace();
+         $this->pdf->displayText('<small><i>' . $config->getField('add_text') . '</i></small>', '', gray: 255);
       }
 
-      if($render) {
+      if ($render) {
+
+         ob_end_clean();
          $this->pdf->render();
       } else {
+         ob_end_clean();
          return $this->pdf->output();
       }
    }
 
 
-   static function mainTitle(PluginPdfSimplePDF $pdf, $item) {
+   static function mainTitle(PluginPdfSimplePDF $pdf, $item)
+   {
 
-      $pdf->setColumnsSize(50,50);
+      $pdf->setColumnsSize(50, 50);
 
-      $col1 = '<b>'.sprintf(__('%1$s %2$s'),__('ID'), $item->fields['id']).'</b>';
-      $col2 = sprintf(__('%1$s: %2$s'), __('Last update'),
-                      Html::convDateTime($item->fields['date_mod']));
+      $col1 = '<b>' . sprintf(__('%1$s %2$s'), __('ID'), $item->fields['id']) . '</b>';
+      $col2 = sprintf(
+         __('%1$s: %2$s'),
+         __('Last update'),
+         Html::convDateTime($item->fields['date_mod'])
+      );
       if (!empty($item->fields['template_name'])) {
-         $col2 = sprintf(__('%1$s (%2$s)'), $col2,
-                         sprintf(__('%1$s: %2$s'), __('Template name'),
-                                 $item->fields['template_name']));
+         $col2 = sprintf(
+            __('%1$s (%2$s)'),
+            $col2,
+            sprintf(
+               __('%1$s: %2$s'),
+               __('Template name'),
+               $item->fields['template_name']
+            )
+         );
       }
       return $pdf->displayTitle($col1, $col2);
    }
 
 
-   static function mainLine(PluginPdfSimplePDF $pdf, $item, $field) {
+   static function mainLine(PluginPdfSimplePDF $pdf, $item, $field)
+   {
 
-      $dbu  = new DbUtils();
+      $dbu = new DbUtils();
 
       $type = Toolbox::strtolower($item->getType());
-      switch($field) {
-         case 'name-status' :
+      switch ($field) {
+         case 'name-status':
             return $pdf->displayLine(
-                     '<b><i>'.sprintf(__('%1$s: %2$s'), __('Name').'</i></b>',
-                                      $item->fields['name']),
-                     '<b><i>'.sprintf(__('%1$s: %2$s'), __('Status').'</i></b>',
-                                      Toolbox::stripTags(Dropdown::getDropdownName('glpi_states',
-                                                                                   $item->fields['states_id']))));
+               '<b><i>' . sprintf(
+                  __('%1$s: %2$s'), __('Name') . '</i></b>',
+                  $item->fields['name']
+               ),
+               '<b><i>' . sprintf(
+                  __('%1$s: %2$s'), __('Status') . '</i></b>',
+                  Toolbox::stripTags(
+                     Dropdown::getDropdownName(
+                        'glpi_states',
+                        $item->fields['states_id']
+                     )
+                  )
+               )
+            );
 
-         case 'location-type' :
+         case 'location-type':
             return $pdf->displayLine(
-                     '<b><i>'.sprintf(__('%1$s: %2$s'), __('Location').'</i></b>',
-                                      Dropdown::getDropdownName('glpi_locations',
-                                                                $item->fields['locations_id'])),
-                     '<b><i>'.sprintf(__('%1$s: %2$s'), __('Type').'</i></b>',
-                                      Toolbox::stripTags(Dropdown::getDropdownName('glpi_'.$type.'types',
-                                                                                   $item->fields[$type.'types_id']))));
+               '<b><i>' . sprintf(
+                  __('%1$s: %2$s'), __('Location') . '</i></b>',
+                  Dropdown::getDropdownName(
+                     'glpi_locations',
+                     $item->fields['locations_id']
+                  )
+               ),
+               '<b><i>' . sprintf(
+                  __('%1$s: %2$s'), __('Type') . '</i></b>',
+                  Toolbox::stripTags(
+                     Dropdown::getDropdownName(
+                        'glpi_' . $type . 'types',
+                        $item->fields[$type . 'types_id']
+                     )
+                  )
+               )
+            );
 
-         case 'tech-manufacturer' :
+         case 'tech-manufacturer':
             return $pdf->displayLine(
-                     '<b><i>'.sprintf(__('%1$s: %2$s'),
-                                      __('Technician in charge of the hardware').'</i></b>',
-                                      $dbu->getUserName($item->fields['users_id_tech'])),
-                     '<b><i>'.sprintf(__('%1$s: %2$s'), __('Manufacturer').'</i></b>',
-                                      Toolbox::stripTags(Dropdown::getDropdownName('glpi_manufacturers',
-                                                                                   $item->fields['manufacturers_id']))));
-         case 'group-model' :
+               '<b><i>' . sprintf(
+                  __('%1$s: %2$s'),
+                  __('Technician in charge of the hardware') . '</i></b>',
+                  $dbu->getUserName($item->fields['users_id_tech'])
+               ),
+               '<b><i>' . sprintf(
+                  __('%1$s: %2$s'), __('Manufacturer') . '</i></b>',
+                  Toolbox::stripTags(
+                     Dropdown::getDropdownName(
+                        'glpi_manufacturers',
+                        $item->fields['manufacturers_id']
+                     )
+                  )
+               )
+            );
+         case 'group-model':
             return $pdf->displayLine(
-                     '<b><i>'.sprintf(__('%1$s: %2$s'),
-                                      __('Group in charge of the hardware').'</i></b>',
-                                      Dropdown::getDropdownName('glpi_groups',
-                                                                $item->fields['groups_id_tech'])),
-                     '<b><i>'.sprintf(__('%1$s: %2$s'), __('Model').'</i></b>',
-                                      Toolbox::stripTags(Dropdown::getDropdownName('glpi_'.$type.'models',
-                                                                                   $item->fields[$type.'models_id']))));
+               '<b><i>' . sprintf(
+                  __('%1$s: %2$s'),
+                  __('Group in charge of the hardware') . '</i></b>',
+                  Dropdown::getDropdownName(
+                     'glpi_groups',
+                     $item->fields['groups_id_tech']
+                  )
+               ),
+               '<b><i>' . sprintf(
+                  __('%1$s: %2$s'), __('Model') . '</i></b>',
+                  Toolbox::stripTags(
+                     Dropdown::getDropdownName(
+                        'glpi_' . $type . 'models',
+                        $item->fields[$type . 'models_id']
+                     )
+                  )
+               )
+            );
 
-         case 'contactnum-serial' :
+         case 'contactnum-serial':
             return $pdf->displayLine(
-                     '<b><i>'.sprintf(__('%1$s: %2$s'), __('Alternate username number').'</i></b>',
-                                      $item->fields['contact_num']),
-                     '<b><i>'.sprintf(__('%1$s: %2$s'), __('Serial number').'</i></b>',
-                                      $item->fields['serial']));
+               '<b><i>' . sprintf(
+                  __('%1$s: %2$s'), __('Alternate username number') . '</i></b>',
+                  $item->fields['contact_num']
+               ),
+               '<b><i>' . sprintf(
+                  __('%1$s: %2$s'), __('Serial number') . '</i></b>',
+                  $item->fields['serial']
+               )
+            );
 
-         case 'contact-otherserial' :
+         case 'contact-otherserial':
             return $pdf->displayLine(
-                     '<b><i>'.sprintf(__('%1$s: %2$s'), __('Alternate username').'</i></b>',
-                                      $item->fields['contact']),
-                     '<b><i>'.sprintf(__('%1$s: %2$s'), __('Inventory number').'</i></b>',
-                                      $item->fields['otherserial']));
+               '<b><i>' . sprintf(
+                  __('%1$s: %2$s'), __('Alternate username') . '</i></b>',
+                  $item->fields['contact']
+               ),
+               '<b><i>' . sprintf(
+                  __('%1$s: %2$s'), __('Inventory number') . '</i></b>',
+                  $item->fields['otherserial']
+               )
+            );
 
-         case 'user-management' :
+         case 'user-management':
             return $pdf->displayLine(
-                     '<b><i>'.sprintf(__('%1$s: %2$s'), __('User').'</i></b>',
-                                      $dbu->getUserName($item->fields['users_id'])),
-                     '<b><i>'.sprintf(__('%1$s: %2$s'), __('Management type').'</i></b>',
-                                      ($item->fields['is_global']?__('Global management')
-                                                                 :__('Unit management'))));
+               '<b><i>' . sprintf(
+                  __('%1$s: %2$s'), __('User') . '</i></b>',
+                  $dbu->getUserName($item->fields['users_id'])
+               ),
+               '<b><i>' . sprintf(
+                  __('%1$s: %2$s'), __('Management type') . '</i></b>',
+                  ($item->fields['is_global'] ? __('Global management')
+                     : __('Unit management'))
+               )
+            );
 
-         case 'comment' :
-            return $pdf->displayText('<b><i>'.sprintf(__('%1$s: %2$s'), __('Comments').'</i></b>',
-                                                      ''), $item->fields['comment']);
+         case 'comment':
+            return $pdf->displayText('<b><i>' . sprintf(
+               __('%1$s: %2$s'), __('Comments') . '</i></b>',
+               ''
+            ), $item->fields['comment']);
 
-       default :
-        return;
+         default:
+            return;
       }
    }
 
 
    /**
     * @since version 0.85
-   **/
-   static function showMassiveActionsSubForm(MassiveAction $ma) {
+    **/
+   static function showMassiveActionsSubForm(MassiveAction $ma)
+   {
 
       switch ($ma->getAction()) {
          case 'DoIt':
@@ -524,184 +646,189 @@ abstract class PluginPdfCommon extends CommonGLPI {
             echo Html::submit(_sx('button', 'Post'), $opt);
             return true;
       }
-//      return parent::showMassiveActionsSubForm($ma);
+      //      return parent::showMassiveActionsSubForm($ma);
    }
 
 
    /**
     * @since version 0.85
-   **/
-   static function processMassiveActionsForOneItemtype(MassiveAction $ma, CommonDBTM $item,
-                                                       array $ids) {
+    **/
+   static function processMassiveActionsForOneItemtype(
+      MassiveAction $ma, CommonDBTM $item,
+      array $ids
+   ) {
 
       switch ($ma->getAction()) {
-         case 'DoIt' :
+         case 'DoIt':
             foreach ($ids as $key => $val) {
                if ($val) {
-                  $tab_id[]=$key;
-                }
-             }
-             $_SESSION["plugin_pdf"]["type"]   = $item->getType();
-             $_SESSION["plugin_pdf"]["tab_id"] = serialize($tab_id);
-             echo "<script type='text/javascript'>
+                  $tab_id[] = $key;
+               }
+            }
+            $_SESSION["plugin_pdf"]["type"] = $item->getType();
+            $_SESSION["plugin_pdf"]["tab_id"] = serialize($tab_id);
+            echo "<script type='text/javascript'>
                       location.href='../plugins/pdf/front/export.massive.php'</script>";
-             break;
+            break;
       }
    }
 
 
-   static function devices() {
+   static function devices()
+   {
 
-   //   name, symbole, currency, uniqUE
-   return ['AED' => ['UAE Dirham', 'د.إ', false],
-           'AFN' => ['Afghani', 'Af'],
-           'ALL' => ['Lek', 'L', false],
-           'AMD' => ['Armenian Dram', 'Դ'],
-           'AOA' => ['Kwanza', 'Kz'],
-           'ARS' => ['Argentine Peso', '$', false],
-           'AUD' => ['Australian Dollar', '$', false],
-           'AWG' => ['Aruban Guilder/Florin', 'ƒ'],
-           'AZN' => ['Azerbaijanian Manat', 'ман'],
-           'BAM' => ['Konvertibilna Marka', 'КМ'],
-           'BBD' => ['Barbados Dollar', '$', false],
-           'BDT' => ['Taka', '৳'],
-           'BGN' => ['Bulgarian Lev', 'лв'],
-           'BHD' => ['Bahraini Dinar', 'ب.د'],
-           'BIF' => ['Burundi Franc', '₣', false],
-           'BMD' => ['Bermudian Dollar', '$', false],
-           'BND' => ['Brunei Dollar', '$', false],
-           'BOB' => ['Boliviano', 'Bs.'],
-           'BRL' => ['Brazilian Real', 'R$'],
-           'BSD' => ['Bahamian Dollar', '$', false],
-           'BTN' => ['Ngultrum', ''],
-           'BWP' => ['Pula', 'P', false],
-           'BYR' => ['Belarussian Ruble', 'Br'],
-           'BZD' => ['Belize Dollar', '$', false],
-           'CAD' => ['Canadian Dollar', '$', false],
-           'CDF' => ['Congolese Franc', '₣', false],
-           'CHF' => ['Swiss Franc', '₣', false],
-           'CLP' => ['Chilean Peso', '$', false],
-           'CNY' => ['Yuan', '¥'],
-           'COP' => ['Colombian Peso', '$', false],
-           'CRC' => ['Costa Rican Colon', '₡'],
-           'CUP' => ['Cuban Peso', '$', false],
-           'CVE' => ['Cape Verde Escudo', '$', false],
-           'CZK' => ['Czech Koruna', 'Kč'],
-           'DJF' => ['Djibouti Franc', '₣', false],
-           'DKK' => ['Danish Krone', 'kr', false],
-           'DOP' => ['Dominican Peso', '$', false],
-           'DZD' => ['Algerian Dinar', 'د.ج'],
-           'EGP' => ['Egyptian Pound', '£', false],
-           'ERN' => ['Nakfa', 'Nfk'],
-           'ETB' => ['Ethiopian Birr', ''],
-           'EUR' => ['Euro', '€'],
-           'FJD' => ['Fiji Dollar', '$', false],
-           'FKP' => ['Falkland Islands Pound', '£', false],
-           'GBP' => ['Pound Sterling', '£', false],
-           'GEL' => ['Lari', 'ლ'],
-           'GHS' => ['Cedi', '₵'],
-           'GIP' => ['Gibraltar Pound', '£', false],
-           'GMD' => ['Dalasi', 'D'],
-           'GNF' => ['Guinea Franc', '₣', false],
-           'GTQ' => ['Quetzal', 'Q'],
-           'HKD' => ['Hong Kong Dollar', '$', false],
-           'HNL' => ['Lempira', 'L', false],
-           'HRK' => ['Croatian Kuna', 'Kn'],
-           'HTG' => ['Gourde', 'G'],
-           'HUF' => ['Forint', 'Ft'],
-           'IDR' => ['Rupiah', 'Rp'],
-           'ILS' => ['New Israeli Shekel', '₪'],
-           'INR' => ['Indian Rupee', '₨', false],
-           'IQD' => ['Iraqi Dinar', 'ع.د'],
-           'IRR' => ['Iranian Rial', '﷼'],
-           'ISK' => ['Iceland Krona', 'Kr', false],
-           'JMD' => ['Jamaican Dollar', '$', false],
-           'JOD' => ['Jordanian Dinar', 'د.ا', false],
-           'JPY' => ['Yen', '¥'],
-           'KES' => ['Kenyan Shilling', 'Sh', false],
-           'KGS' => ['Som', ''],
-           'KHR' => ['Riel', '៛'],
-           'KPW' => ['North Korean Won', '₩', false],
-           'KRW' => ['South Korean Won',  '₩', false],
-           'KWD' => ['Kuwaiti Dinar', 'د.ك'],
-           'KYD' => ['Cayman Islands Dollar', '$', false],
-           'KZT' => ['Tenge', '〒'],
-           'LAK' => ['Kip', '₭'],
-           'LBP' => ['Lebanese Pound', 'ل.ل'],
-           'LKR' => ['Sri Lanka Rupee', 'Rs'],
-           'LRD' => ['Liberian Dollar', '$', false],
-           'LSL' => ['Loti', 'L', false],
-           'LYD' => ['Libyan Dinar', 'ل.د'],
-           'MAD' => ['Moroccan Dirham', 'د.م.'],
-           'MDL' => ['Moldavian Leu', 'L', false],
-           'MGA' => ['Malagasy Ariary', ''],
-           'MKD' => ['Denar', 'ден'],
-           'MMK' => ['Kyat', 'K', false],
-           'MNT' => ['Tugrik', '₮'],
-           'MOP' => ['Pataca', 'P', false],
-           'MRO' => ['Ouguiya', 'UM'],
-           'MUR' => ['Mauritius Rupee', '₨', false],
-           'MVR' => ['Rufiyaa', 'ރ.'],
-           'MWK' => ['Kwacha', 'MK'],
-           'MXN' => ['Mexican Peso', '$', false],
-           'MYR' => ['Malaysian Ringgit', 'RM'],
-           'MZN' => ['Metical', 'MTn'],
-           'NAD' => ['Namibia Dollar', '$', false],
-           'NGN' => ['Naira', '₦'],
-           'NIO' => ['Cordoba Oro', 'C$'],
-           'NOK' => ['Norwegian Krone', 'kr', false],
-           'NPR' => ['Nepalese Rupee', '₨', false],
-           'NZD' => ['New Zealand Dollar', '$', false],
-           'OMR' => ['Rial Omani', 'ر.ع.'],
-           'PAB' => ['Balboa', 'B/.'],
-           'PEN' => ['Nuevo Sol', 'S/.'],
-           'PGK' => ['Kina', 'K', false],
-           'PHP' => ['Philippine Peso', '₱'],
-           'PKR' => ['Pakistan Rupee', '₨', false],
-           'PLN' => ['PZloty', 'zł'],
-           'PYG' => ['Guarani', '₲'],
-           'QAR' => ['Qatari Rial', 'ر.ق'],
-           'RON' => ['Leu', 'L', false],
-           'RSD' => ['Serbian Dinar', 'din'],
-           'RUB' =>['Russian Ruble', 'р.'],
-           'RWF' => ['Rwanda Franc', 'F', false],
-           'SAR' => ['Saudi Riyal', 'ر.س '],
-           'SBD' => ['Solomon Islands Dollar', '$', false],
-           'SCR' => ['Seychelles Rupee', '₨', false],
-           'SDG' => ['Sudanese', '£', false],
-           'SEK' => ['Swedish Krona', 'kr', false],
-           'SGD' => ['Singapore Dollar', '$', false],
-           'SHP' => ['Saint Helena Pound', '£', false],
-           'SLL' => ['leone', 'Le'],
-           'SOS' => ['Somali Shilling', 'Sh', false],
-           'SRD' => ['Suriname Dollar', '$', false],
-           'STD' => ['Dobra', 'Db'],
-           'SYP' => ['Syrian Pound', 'ل.س'],
-           'SZL' => ['Lilangeni', 'L', false],
-           'THB' => ['Baht', '฿'],
-           'TJS' => ['Somoni', 'ЅМ'],
-           'TMT' => ['Manat', 'm'],
-           'TND' => ['Tunisian Dinar', 'د.ت'],
-           'TOP' => ['Pa’anga', 'T$'],
-           'TRY' => ['Turkish Lira', '₤', false],
-           'TTD' => ['Trinidad and Tobago Dollar', '$', false],
-           'TWD' => ['Taiwan Dollar', '$', false],
-           'TZS' => ['Tanzanian Shilling', 'Sh', false],
-           'UAH' => ['Hryvnia', '₴'],
-           'UGX' => ['Uganda Shilling', 'Sh', false],
-           'USD' => ['US Dollar', '$', false],
-           'UYU' => ['Peso Uruguayo', '$', false],
-           'UZS' => ['Uzbekistan Sum', ''],
-           'VEF' => ['Bolivar Fuerte', 'Bs F'],
-           'VND' => ['Dong', '₫'],
-           'VUV' => ['Vatu', 'Vt'],
-           'WST' => ['Tala', 'T'],
-           'XAF' => ['CFA Franc BCEAO', '₣', false],
-           'XCD' => ['East Caribbean Dollar', '$', false],
-           'XPF' => ['CFP Franc', '₣', false],
-           'YER' => ['Yemeni Rial', '﷼'],
-           'ZAR' => ['Rand', 'R'],
-           'ZMW' => ['Zambian Kwacha', 'ZK'],
-           'ZWL' => ['Zimbabwe Dollar', '$', false]];
+      //   name, symbole, currency, uniqUE
+      return [
+         'AED' => ['UAE Dirham', 'د.إ', false],
+         'AFN' => ['Afghani', 'Af'],
+         'ALL' => ['Lek', 'L', false],
+         'AMD' => ['Armenian Dram', 'Դ'],
+         'AOA' => ['Kwanza', 'Kz'],
+         'ARS' => ['Argentine Peso', '$', false],
+         'AUD' => ['Australian Dollar', '$', false],
+         'AWG' => ['Aruban Guilder/Florin', 'ƒ'],
+         'AZN' => ['Azerbaijanian Manat', 'ман'],
+         'BAM' => ['Konvertibilna Marka', 'КМ'],
+         'BBD' => ['Barbados Dollar', '$', false],
+         'BDT' => ['Taka', '৳'],
+         'BGN' => ['Bulgarian Lev', 'лв'],
+         'BHD' => ['Bahraini Dinar', 'ب.د'],
+         'BIF' => ['Burundi Franc', '₣', false],
+         'BMD' => ['Bermudian Dollar', '$', false],
+         'BND' => ['Brunei Dollar', '$', false],
+         'BOB' => ['Boliviano', 'Bs.'],
+         'BRL' => ['Brazilian Real', 'R$'],
+         'BSD' => ['Bahamian Dollar', '$', false],
+         'BTN' => ['Ngultrum', ''],
+         'BWP' => ['Pula', 'P', false],
+         'BYR' => ['Belarussian Ruble', 'Br'],
+         'BZD' => ['Belize Dollar', '$', false],
+         'CAD' => ['Canadian Dollar', '$', false],
+         'CDF' => ['Congolese Franc', '₣', false],
+         'CHF' => ['Swiss Franc', '₣', false],
+         'CLP' => ['Chilean Peso', '$', false],
+         'CNY' => ['Yuan', '¥'],
+         'COP' => ['Colombian Peso', '$', false],
+         'CRC' => ['Costa Rican Colon', '₡'],
+         'CUP' => ['Cuban Peso', '$', false],
+         'CVE' => ['Cape Verde Escudo', '$', false],
+         'CZK' => ['Czech Koruna', 'Kč'],
+         'DJF' => ['Djibouti Franc', '₣', false],
+         'DKK' => ['Danish Krone', 'kr', false],
+         'DOP' => ['Dominican Peso', '$', false],
+         'DZD' => ['Algerian Dinar', 'د.ج'],
+         'EGP' => ['Egyptian Pound', '£', false],
+         'ERN' => ['Nakfa', 'Nfk'],
+         'ETB' => ['Ethiopian Birr', ''],
+         'EUR' => ['Euro', '€'],
+         'FJD' => ['Fiji Dollar', '$', false],
+         'FKP' => ['Falkland Islands Pound', '£', false],
+         'GBP' => ['Pound Sterling', '£', false],
+         'GEL' => ['Lari', 'ლ'],
+         'GHS' => ['Cedi', '₵'],
+         'GIP' => ['Gibraltar Pound', '£', false],
+         'GMD' => ['Dalasi', 'D'],
+         'GNF' => ['Guinea Franc', '₣', false],
+         'GTQ' => ['Quetzal', 'Q'],
+         'HKD' => ['Hong Kong Dollar', '$', false],
+         'HNL' => ['Lempira', 'L', false],
+         'HRK' => ['Croatian Kuna', 'Kn'],
+         'HTG' => ['Gourde', 'G'],
+         'HUF' => ['Forint', 'Ft'],
+         'IDR' => ['Rupiah', 'Rp'],
+         'ILS' => ['New Israeli Shekel', '₪'],
+         'INR' => ['Indian Rupee', '₨', false],
+         'IQD' => ['Iraqi Dinar', 'ع.د'],
+         'IRR' => ['Iranian Rial', '﷼'],
+         'ISK' => ['Iceland Krona', 'Kr', false],
+         'JMD' => ['Jamaican Dollar', '$', false],
+         'JOD' => ['Jordanian Dinar', 'د.ا', false],
+         'JPY' => ['Yen', '¥'],
+         'KES' => ['Kenyan Shilling', 'Sh', false],
+         'KGS' => ['Som', ''],
+         'KHR' => ['Riel', '៛'],
+         'KPW' => ['North Korean Won', '₩', false],
+         'KRW' => ['South Korean Won', '₩', false],
+         'KWD' => ['Kuwaiti Dinar', 'د.ك'],
+         'KYD' => ['Cayman Islands Dollar', '$', false],
+         'KZT' => ['Tenge', '〒'],
+         'LAK' => ['Kip', '₭'],
+         'LBP' => ['Lebanese Pound', 'ل.ل'],
+         'LKR' => ['Sri Lanka Rupee', 'Rs'],
+         'LRD' => ['Liberian Dollar', '$', false],
+         'LSL' => ['Loti', 'L', false],
+         'LYD' => ['Libyan Dinar', 'ل.د'],
+         'MAD' => ['Moroccan Dirham', 'د.م.'],
+         'MDL' => ['Moldavian Leu', 'L', false],
+         'MGA' => ['Malagasy Ariary', ''],
+         'MKD' => ['Denar', 'ден'],
+         'MMK' => ['Kyat', 'K', false],
+         'MNT' => ['Tugrik', '₮'],
+         'MOP' => ['Pataca', 'P', false],
+         'MRO' => ['Ouguiya', 'UM'],
+         'MUR' => ['Mauritius Rupee', '₨', false],
+         'MVR' => ['Rufiyaa', 'ރ.'],
+         'MWK' => ['Kwacha', 'MK'],
+         'MXN' => ['Mexican Peso', '$', false],
+         'MYR' => ['Malaysian Ringgit', 'RM'],
+         'MZN' => ['Metical', 'MTn'],
+         'NAD' => ['Namibia Dollar', '$', false],
+         'NGN' => ['Naira', '₦'],
+         'NIO' => ['Cordoba Oro', 'C$'],
+         'NOK' => ['Norwegian Krone', 'kr', false],
+         'NPR' => ['Nepalese Rupee', '₨', false],
+         'NZD' => ['New Zealand Dollar', '$', false],
+         'OMR' => ['Rial Omani', 'ر.ع.'],
+         'PAB' => ['Balboa', 'B/.'],
+         'PEN' => ['Nuevo Sol', 'S/.'],
+         'PGK' => ['Kina', 'K', false],
+         'PHP' => ['Philippine Peso', '₱'],
+         'PKR' => ['Pakistan Rupee', '₨', false],
+         'PLN' => ['PZloty', 'zł'],
+         'PYG' => ['Guarani', '₲'],
+         'QAR' => ['Qatari Rial', 'ر.ق'],
+         'RON' => ['Leu', 'L', false],
+         'RSD' => ['Serbian Dinar', 'din'],
+         'RUB' => ['Russian Ruble', 'р.'],
+         'RWF' => ['Rwanda Franc', 'F', false],
+         'SAR' => ['Saudi Riyal', 'ر.س '],
+         'SBD' => ['Solomon Islands Dollar', '$', false],
+         'SCR' => ['Seychelles Rupee', '₨', false],
+         'SDG' => ['Sudanese', '£', false],
+         'SEK' => ['Swedish Krona', 'kr', false],
+         'SGD' => ['Singapore Dollar', '$', false],
+         'SHP' => ['Saint Helena Pound', '£', false],
+         'SLL' => ['leone', 'Le'],
+         'SOS' => ['Somali Shilling', 'Sh', false],
+         'SRD' => ['Suriname Dollar', '$', false],
+         'STD' => ['Dobra', 'Db'],
+         'SYP' => ['Syrian Pound', 'ل.س'],
+         'SZL' => ['Lilangeni', 'L', false],
+         'THB' => ['Baht', '฿'],
+         'TJS' => ['Somoni', 'ЅМ'],
+         'TMT' => ['Manat', 'm'],
+         'TND' => ['Tunisian Dinar', 'د.ت'],
+         'TOP' => ['Pa’anga', 'T$'],
+         'TRY' => ['Turkish Lira', '₤', false],
+         'TTD' => ['Trinidad and Tobago Dollar', '$', false],
+         'TWD' => ['Taiwan Dollar', '$', false],
+         'TZS' => ['Tanzanian Shilling', 'Sh', false],
+         'UAH' => ['Hryvnia', '₴'],
+         'UGX' => ['Uganda Shilling', 'Sh', false],
+         'USD' => ['US Dollar', '$', false],
+         'UYU' => ['Peso Uruguayo', '$', false],
+         'UZS' => ['Uzbekistan Sum', ''],
+         'VEF' => ['Bolivar Fuerte', 'Bs F'],
+         'VND' => ['Dong', '₫'],
+         'VUV' => ['Vatu', 'Vt'],
+         'WST' => ['Tala', 'T'],
+         'XAF' => ['CFA Franc BCEAO', '₣', false],
+         'XCD' => ['East Caribbean Dollar', '$', false],
+         'XPF' => ['CFP Franc', '₣', false],
+         'YER' => ['Yemeni Rial', '﷼'],
+         'ZAR' => ['Rand', 'R'],
+         'ZMW' => ['Zambian Kwacha', 'ZK'],
+         'ZWL' => ['Zimbabwe Dollar', '$', false]
+      ];
    }
 }
