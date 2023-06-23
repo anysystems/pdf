@@ -50,7 +50,7 @@ class PluginPdfTicket extends PluginPdfCommon
       $result = '';
 
       try {
-         $dateTime = new DateTime($val);
+         $dateTime = DateTime::createFromFormat('Y-m-d H:i:s', $val);
 
          switch ($format) {
             case 'datetime':
