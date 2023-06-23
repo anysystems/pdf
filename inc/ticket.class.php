@@ -71,6 +71,7 @@ class PluginPdfTicket extends PluginPdfCommon
       }
    }
 
+
    static function getAdditionalFieldsDropdownValue($id, $val, $fieldName, $field): string
    {
       global $DB;
@@ -191,31 +192,29 @@ class PluginPdfTicket extends PluginPdfCommon
 
       $pdf->setColumnsSize(100);
 
-      // $pdf->displayTitle('<b>' .
-      //    (empty($ticket->fields["name"]) ? __('Without title') : $name = $ticket->fields["name"]) . '</b>');
+      $entity = Entity::getById($ticket->getField('entities_id'));
 
-      if (count($_SESSION['glpiactiveentities']) > 1) {
-         $entity = " (" . Dropdown::getDropdownName(
-            "glpi_entities",
-            $ticket->fields["entities_id"]
-         ) . ")";
-      } else {
-         $entity = '';
-      }
-
-      $separator = Glpi\Toolbox\Sanitizer::sanitize(' > ');
-      $entityNames = explode($separator, Dropdown::getDropdownName('glpi_entities', $ticket->getEntityID()));
-      $entity = $entityNames[count($entityNames) - 1];
 
       $pdf->setColumnsSize(25, 50, 25);
-      $pdf->displayTitle("<strong><i>Número de registro</i></strong><br>$ID", '<strong><i>Cliente</i></strong><br>' . $entity, "<strong><i>Fecha</i></strong><br>" . self::formatDate($ticket->getField('date_creation'), 'date'));
+      $pdf->displayTitle(
+         "<strong><i>Número de registro</i></strong><br>$ID",
+         '<strong><i>Cliente</i></strong><br>' . $entity->getField('name'),
+         "<strong><i>Fecha</i></strong><br>" . self::formatDate($ticket->getField('date_creation'), 'date')
+      );
 
 
       $additionalFieldsInfo = [];
       $additionalFieldsValues = [];
 
       self::getAdditionalFieldsForTicket($ticket, $additionalFieldsValues, $additionalFieldsInfo);
-      // die(json_encode([$additionalFieldsValues]));
+
+      $entityAddress = implode(', ', array_filter([
+         $entity->getField('address') ?? null,
+         $entity->getField('postcode') ?? null,
+         $entity->getField('town') ?? null,
+         $entity->getField('state') ?? null,
+         $entity->getField(field: 'country') ?? null
+      ], fn($d) => $d != null));
 
       if (sizeof($additionalFieldsInfo)) {
          $pdf->setColumnsSize(100);
@@ -229,7 +228,12 @@ class PluginPdfTicket extends PluginPdfCommon
 
          $pdf->displayLine("<strong><i>Fecha de cita:</i></strong>&nbsp;" . $additionalFieldsValues['fechadecitafield'], "<strong><i>Contacto:</i></strong>&nbsp;" . $additionalFieldsValues['contactofield']);
 
+         $pdf->displayLine("<strong><i>Teléfono:</i></strong>&nbsp;" . $entity->getField('phonenumber'), "<strong><i>Correo electrónico:</i></strong>&nbsp;" . $entity->getField('email'));
+
          $pdf->setColumnsSize(100);
+
+         $pdf->displayText('<strong><i>Dirección:</i></strong>', $entityAddress, 2, 2);
+
          $pdf->displaySpace();
          $pdf->displayTitle("<strong><i>Datos de la intervención</i></strong>");
          $pdf->setColumnsSize(50, 50);
@@ -248,22 +252,22 @@ class PluginPdfTicket extends PluginPdfCommon
 
          $pdf->displaySpace();
          $pdf->setColumnsSize(100);
-         $pdf->displayText("<strong><i>Avería</i></strong>", "<br>" . $additionalFieldsValues['averafield'], 5);
+         $pdf->displayText("<strong><i>Avería</i></strong>", "<br>" . $additionalFieldsValues['averafield'], 3, 3);
 
          $pdf->displaySpace();
 
          if ($additionalFieldsValues['descripcindelaintervencinfield'] != null && $additionalFieldsValues['descripcindelaintervencinfield'] != '') {
-            $pdf->displayText("<strong><i>Descripción de la intervención</i></strong>", "<br>" . $additionalFieldsValues['descripcindelaintervencinfield'], 6);
+            $pdf->displayText("<strong><i>Descripción de la intervención</i></strong>", "<br>" . $additionalFieldsValues['descripcindelaintervencinfield'], 5, 5);
          } else {
-            $pdf->displayText("<strong><i>Descripción de la intervención</i></strong>", "<br>" . trim($additionalFieldsValues['solutions'][0]['content']), 6);
+            $pdf->displayText("<strong><i>Descripción de la intervención</i></strong>", "<br>" . trim($additionalFieldsValues['solutions'][0]['content']), 5, 5);
          }
 
 
          $pdf->displaySpace();
-         $pdf->displayText("<strong><i>Material empleado</i></strong>", "<br>" . $additionalFieldsValues['materialempleadofield'], 5);
+         $pdf->displayText("<strong><i>Material empleado</i></strong>", "<br>" . $additionalFieldsValues['materialempleadofield'], 5, 5);
 
          $pdf->displaySpace();
-         $pdf->displayText("<strong><i>Observaciones</i></strong>", "<br>" . $additionalFieldsValues['observacionefieldtwo'], 4);
+         $pdf->displayText("<strong><i>Observaciones</i></strong>", "<br>" . $additionalFieldsValues['observacionefieldtwo'], 3, 3);
       }
 
       // Assign to
