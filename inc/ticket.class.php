@@ -228,7 +228,10 @@ class PluginPdfTicket extends PluginPdfCommon
 
          $pdf->displayLine("<strong><i>Fecha de cita:</i></strong>&nbsp;" . $additionalFieldsValues['fechadecitafield'], "<strong><i>Contacto:</i></strong>&nbsp;" . $additionalFieldsValues['contactofield']);
 
-         $pdf->displayLine("<strong><i>Teléfono:</i></strong>&nbsp;" . $entity->getField('phonenumber'), "<strong><i>Correo electrónico:</i></strong>&nbsp;" . $entity->getField('email'));
+         $pdf->displayLine(
+            "<strong><i>Teléfono:</i></strong>&nbsp;" . "<a href=\"tel:{$entity->getField('phonenumber')}\" style=\"text-decoration: none; color: black\">{$entity->getField('phonenumber')}</a>",
+            "<strong><i>Correo electrónico:</i></strong>&nbsp;" . "<a href=\"mailto:{$entity->getField('email')}\" style=\"text-decoration: none; color: black\">{$entity->getField('email')}</a>"
+         );
 
          $pdf->setColumnsSize(100);
 
