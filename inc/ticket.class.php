@@ -49,44 +49,53 @@ class PluginPdfTicket extends PluginPdfCommon
 
       $result = '';
 
-      $dateTime = new DateTime($val);
+      try {
+         $dateTime = new DateTime($val);
+
+         switch ($format) {
+            case 'datetime':
+               $result = $dateTime->format('d/m/Y H:i');
+               break;
+            case 'time':
+               $result = $dateTime->format('H:i');
+               break;
+            case 'date':
+               $result = $dateTime->format('d/m/Y');
+               break;
+         }
 
 
-      switch ($format) {
-         case 'datetime':
-            $result = $dateTime->format('d/m/Y H:i');
-            break;
-         case 'time':
-            $result = $dateTime->format('H:i');
-            break;
-         case 'date':
-            $result = $dateTime->format('d/m/Y');
-            break;
+         return $result;
+      } catch (\Throwable $th) {
+         return $val;
       }
-
-
-      return $result;
    }
 
-   static function getAdditionalFieldsDropdownValue($id, $val, $fieldName, $field)
+   static function getAdditionalFieldsDropdownValue($id, $val, $fieldName, $field): string
    {
       global $DB;
 
       if ($val) {
-         $dropdownId = $val["plugin_fields_" . $fieldName . "dropdowns_id"];
+         try {
+            $dropdownId = $val["plugin_fields_" . $fieldName . "dropdowns_id"];
 
 
-         $query = "SELECT * FROM glpi_plugin_fields_${fieldName}dropdowns WHERE id = $dropdownId limit 1";
+            $query = "SELECT * FROM glpi_plugin_fields_{$fieldName}dropdowns WHERE id = $dropdownId limit 1";
 
-         $res = $DB->query($query);
+            $res = $DB->query($query);
 
-         $result = $DB->fetchAssoc($res);
+            $result = $DB->fetchAssoc($res);
 
-         // die(json_encode(["plugin_fields_" . $fieldName . "dropdowns_id", $val, $dropdownId, $query, $result]));
+            // die(json_encode(["plugin_fields_" . $fieldName . "dropdowns_id", $val, $dropdownId, $query, $result]));
 
-         return [$fieldName => $result['completename']];
+            if (array_key_exists('completename', $result)) {
+               return $result['completename'];
+            }
+         } catch (\Throwable $th) {
+         }
       }
 
+      return '';
    }
 
    static function getAdditionalFieldsForTicket(Ticket $ticket, array &$fieldValues = [], array &$fieldsInfo = []): void
@@ -135,18 +144,17 @@ class PluginPdfTicket extends PluginPdfCommon
                      case 'datetime':
                      case 'date':
                      case 'time':
-                        $result = self::formatDate($result[$fieldName], $fieldType);
+                        $result = [$fieldName => self::formatDate($result[$fieldName], $fieldType)];
                         break;
                      case 'dropdown':
-                        $result = self::getAdditionalFieldsDropdownValue($ID, $result, $fieldName, $field);
+                        $result = [$fieldName => self::getAdditionalFieldsDropdownValue($ID, $result, $fieldName, $field)];
                         // die(json_encode([$result,$fieldName]));
                         break;
-
                   }
 
                   $fieldValues[$fieldName] = $result[$fieldName];
-
                } catch (\Throwable $th) {
+                  $fieldValues[$fieldName] = $th->getMessage();
                }
             }
          }
