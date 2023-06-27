@@ -50,7 +50,9 @@ class PluginPdfTicket extends PluginPdfCommon
       $result = '';
 
       try {
-         $dateTime = DateTime::createFromFormat('Y-m-d H:i:s', $val);
+         if (!($dateTime = DateTime::createFromFormat('Y-m-d H:i:s', $val))) {
+            $dateTime = DateTime::createFromFormat('d/m/Y H:i', $val);
+         }
 
          switch ($format) {
             case 'datetime':
@@ -220,13 +222,21 @@ class PluginPdfTicket extends PluginPdfCommon
          $pdf->setColumnsSize(100);
          $pdf->displaySpace();
          $pdf->displayTitle("<strong><i>Datos del aviso</i></strong>");
+         $pdf->setColumnsSize(100 / 3, 100 / 3, 100 / 3);
+
+         $pdf->displayLine(
+            "<strong><i>Provincia:</i></strong>&nbsp;" . $additionalFieldsValues['provinciafield'],
+            "<strong><i>Población:</i></strong>&nbsp;" . $additionalFieldsValues['poblacinfield'],
+            "<strong><i>Fecha de cita:</i></strong>&nbsp;" . $additionalFieldsValues['fechadecitafield']
+         );
+
          $pdf->setColumnsSize(50, 50);
-
-         $pdf->displayLine("<strong><i>Provincia:</i></strong>&nbsp;" . $additionalFieldsValues['provinciafield'], "<strong><i>Población:</i></strong>&nbsp;" . $additionalFieldsValues['poblacinfield']);
-
          $pdf->displayLine("<strong><i>Nº Llamada:</i></strong>&nbsp;" . $additionalFieldsValues['nllamadafield'], "<strong><i>Nº Llamada Fab.:</i></strong>&nbsp;" . $additionalFieldsValues['nllamadafabfield']);
-
-         $pdf->displayLine("<strong><i>Fecha de cita:</i></strong>&nbsp;" . $additionalFieldsValues['fechadecitafield'], "<strong><i>Contacto:</i></strong>&nbsp;" . $additionalFieldsValues['contactofield']);
+         if ($additionalFieldsValues['direccinfield'] != null || $additionalFieldsValues['direccinfield'] != '') {
+            $pdf->displayLine('<strong><i>Dirección:</i></strong>&nbsp;' . $additionalFieldsValues['direccinfield'], "<strong><i>Contacto:</i></strong>&nbsp;" . $additionalFieldsValues['contactofield']);
+         } else {
+            $pdf->displayLine('<strong><i>Dirección:</i></strong>&nbsp;' . $entityAddress, "<strong><i>Contacto:</i></strong>&nbsp;" . $additionalFieldsValues['contactofield']);
+         }
 
          $pdf->displayLine(
             "<strong><i>Teléfono:</i></strong>&nbsp;" . "<a href=\"tel:{$entity->getField('phonenumber')}\" style=\"text-decoration: none; color: black\">{$entity->getField('phonenumber')}</a>",
@@ -235,42 +245,53 @@ class PluginPdfTicket extends PluginPdfCommon
 
          $pdf->setColumnsSize(100);
 
-         $pdf->displayText('<strong><i>Dirección:</i></strong>', $entityAddress, 2, 2);
+
+         $pdf->displayText("<strong><i>Observaciones: </i></strong><br>" . $additionalFieldsValues['observacionefield'], 3, 3);
 
          $pdf->displaySpace();
          $pdf->displayTitle("<strong><i>Datos de la intervención</i></strong>");
          $pdf->setColumnsSize(50, 50);
 
-         $pdf->displayLine("<strong><i>Hora Inicio:</i></strong>&nbsp;" . self::formatDate($additionalFieldsValues['fechadeiniciofield'], 'time'), "<strong><i>Hora Fin:&nbsp;</i></strong>" . self::formatDate($additionalFieldsValues['fechadefinalizacinfield'], 'time'));
+         $pdf->displayLine(
+            "<strong><i>Hora Inicio:</i></strong>&nbsp;" . self::formatDate($additionalFieldsValues['fechadeiniciofield'], 'datetime'),
+            "<strong><i>Hora Fin:&nbsp;</i></strong>" . self::formatDate($additionalFieldsValues['fechadefinalizacinfield'], 'datetime')
+         );
 
 
-         // if ($additionalFieldsValues['fechadeiniciofield2'] || $additionalFieldsValues['fechadefinalizacinfield2']) {
-         $pdf->displayLine("<strong><i>Hora Inicio 2:</i></strong>&nbsp;" . self::formatDate($additionalFieldsValues['fechadeiniciofield2'], 'time'), "<strong><i>Hora Fin 2:&nbsp;</i></strong>" . self::formatDate($additionalFieldsValues['fechadefinalizacinfield2'], 'time'));
-         // }
+         $pdf->displayLine(
+            "<strong><i>Hora Inicio 2:</i></strong>&nbsp;" . self::formatDate($additionalFieldsValues['fechadeiniciotwofield'], 'datetime'),
+            "<strong><i>Hora Fin 2:&nbsp;</i></strong>" . self::formatDate($additionalFieldsValues['fechadefinalizacintwofield'], 'datetime')
+         );
 
-         // if ($additionalFieldsValues['fechadeiniciofield3'] || $additionalFieldsValues['fechadefinalizacinfield3']) {
-         $pdf->displayLine("<strong><i>Hora Inicio 3:</i></strong>&nbsp;" . self::formatDate($additionalFieldsValues['fechadeiniciofield3'], 'time'), "<strong><i>Hora Fin 3:&nbsp;</i></strong>" . self::formatDate($additionalFieldsValues['fechadefinalizacinfield3'], 'time'));
-         // }
-         $pdf->displayLine("<strong><i>Kilometraje:</i></strong>&nbsp;" . $additionalFieldsValues['kilometrajefield'], "<strong><i>Tpo. Desplazamiento:</i></strong>&nbsp;" . $additionalFieldsValues['tpodesplazamientofield']);
+         $pdf->displayLine(
+            "<strong><i>Hora Inicio 3:</i></strong>&nbsp;" . self::formatDate($additionalFieldsValues['fechadeiniciothreefield'], 'datetime'),
+            "<strong><i>Hora Fin 3:&nbsp;</i></strong>" . self::formatDate($additionalFieldsValues['fechadefinalizacinthreefield'], 'datetime')
+         );
 
-         $pdf->displaySpace();
+         $pdf->displayLine(
+            "<strong><i>Hora Inicio 4:</i></strong>&nbsp;" . self::formatDate($additionalFieldsValues['fechadeiniciofourfield'], 'datetime'),
+            "<strong><i>Hora Fin 4:&nbsp;</i></strong>" . self::formatDate($additionalFieldsValues['fechadefinalizacinfourfield'], 'datetime')
+         );
+
+         $pdf->displayLine("<strong><i>Kilometraje:</i></strong>&nbsp;" . $additionalFieldsValues['kilometrajefield'], "<strong><i>Tpo. Desplazamiento:</i></strong>&nbsp;" . $additionalFieldsValues['tpodesplazamientomnfield']);
+
+         // $pdf->displaySpace();
          $pdf->setColumnsSize(100);
-         $pdf->displayText("<strong><i>Avería</i></strong>", "<br>" . $additionalFieldsValues['averafield'], 3, 3);
+         $pdf->displayText("<strong><i>Avería:</i></strong>", "<br>" . $additionalFieldsValues['averafield'], 3, 3);
 
-         $pdf->displaySpace();
+         // $pdf->displaySpace();
 
          if ($additionalFieldsValues['descripcindelaintervencinfield'] != null && $additionalFieldsValues['descripcindelaintervencinfield'] != '') {
-            $pdf->displayText("<strong><i>Descripción de la intervención</i></strong>", "<br>" . $additionalFieldsValues['descripcindelaintervencinfield'], 5, 5);
+            $pdf->displayText("<strong><i>Descripción de la intervención:</i></strong>", "<br>" . $additionalFieldsValues['descripcindelaintervencinfield'], 5, 5);
          } else {
-            $pdf->displayText("<strong><i>Descripción de la intervención</i></strong>", "<br>" . trim($additionalFieldsValues['solutions'][0]['content']), 5, 5);
+            $pdf->displayText("<strong><i>Descripción de la intervención:</i></strong>", "<br>" . trim($additionalFieldsValues['solutions'][0]['content']), 5, 5);
          }
 
 
-         $pdf->displaySpace();
-         $pdf->displayText("<strong><i>Material empleado</i></strong>", "<br>" . $additionalFieldsValues['materialempleadofield'], 5, 5);
+         // $pdf->displaySpace();
+         $pdf->displayText("<strong><i>Material empleado:</i></strong>", "<br>" . $additionalFieldsValues['materialempleadofield'], 3, 3);
 
-         $pdf->displaySpace();
-         $pdf->displayText("<strong><i>Observaciones</i></strong>", "<br>" . $additionalFieldsValues['observacionefieldtwo'], 3, 3);
+
       }
 
       // Assign to
@@ -300,7 +321,7 @@ class PluginPdfTicket extends PluginPdfCommon
       $pdf->displaySpace();
       $pdf->setColumnsSize(50, 50);
 
-      $pdf->displayCustomLine(miny: 3, msgs: ["<strong><i>Técnicos</i></strong><br>" . $listusers, "<strong><i>Firma del cliente</i></strong><br><br><br>"]);
+      $pdf->displayCustomLine(miny: 3, msgs: ["<strong><i>Técnicos:</i></strong><br>" . $listusers, "<strong><i>Firma del cliente:</i></strong><br><br><br>"]);
 
 
    }
