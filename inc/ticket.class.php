@@ -222,7 +222,7 @@ class PluginPdfTicket extends PluginPdfCommon
          $pdf->setColumnsSize(100);
          $pdf->displaySpace();
          $pdf->displayTitle("<strong><i>Datos del aviso</i></strong>");
-         $pdf->setColumnsSize(100 / 3, 100 / 3, 100 / 3);
+         $pdf->setColumnsSize(30, 30, 40);
 
          $pdf->displayLine(
             "<strong><i>Provincia:</i></strong>&nbsp;" . $additionalFieldsValues['provinciafield'],
@@ -245,8 +245,7 @@ class PluginPdfTicket extends PluginPdfCommon
 
          $pdf->setColumnsSize(100);
 
-
-         $pdf->displayText("<strong><i>Observaciones: </i></strong><br>" . $additionalFieldsValues['observacionefield'], 3, 3);
+         $pdf->displayText("<strong><i>Avería:</i></strong>", "<br>" . $additionalFieldsValues['averafield'], 3, 3);
 
          $pdf->displaySpace();
          $pdf->displayTitle("<strong><i>Datos de la intervención</i></strong>");
@@ -277,7 +276,6 @@ class PluginPdfTicket extends PluginPdfCommon
 
          // $pdf->displaySpace();
          $pdf->setColumnsSize(100);
-         $pdf->displayText("<strong><i>Avería:</i></strong>", "<br>" . $additionalFieldsValues['averafield'], 3, 3);
 
          // $pdf->displaySpace();
 
@@ -291,7 +289,7 @@ class PluginPdfTicket extends PluginPdfCommon
          // $pdf->displaySpace();
          $pdf->displayText("<strong><i>Material empleado:</i></strong>", "<br>" . $additionalFieldsValues['materialempleadofield'], 3, 3);
 
-
+         $pdf->displayText("<strong><i>Observaciones: </i></strong><br>" . $additionalFieldsValues['observacionefield'], 3, 3);
       }
 
       // Assign to
